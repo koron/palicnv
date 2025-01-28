@@ -4,4 +4,4 @@
 [![Actions/Go](https://github.com/koron/palicnv/workflows/Go/badge.svg)](https://github.com/koron/palicnv/actions?query=workflow%3AGo)
 [![Go Report Card](https://goreportcard.com/badge/github.com/koron/palicnv)](https://goreportcard.com/report/github.com/koron/palicnv)
 
-Convert the image to PaliGemma size and color model.
+Convert image files to a size and color model compatible with PaliGemma.

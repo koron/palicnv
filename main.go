@@ -1,46 +1,58 @@
 package main
 
 import (
+	"flag"
+	"fmt"
 	"image"
-	"image/png"
+	_ "image/gif"
+	_ "image/jpeg"
+	_ "image/png"
 	"log"
-	"os"
+	"path/filepath"
 
 	"golang.org/x/image/draw"
 )
 
-func loadImage(name string) (image.Image, error) {
-	f, err := os.Open(name)
+func Preconvert(input, output string, size int) error {
+	src, err := Load(input)
 	if err != nil {
-		return nil, err
+		return fmt.Errorf("failed to load an image: %w", err)
 	}
-	defer f.Close()
-	img, _, err := image.Decode(f)
-	if err != nil {
-		return nil, err
-	}
-	return img, nil
-}
 
-func pngSave(img image.Image, name string) error {
-	f, err := os.Create(name)
+	dst := image.NewRGBA(image.Rect(0, 0, size, size))
+	draw.CatmullRom.Scale(dst, dst.Bounds(), src, src.Bounds(), draw.Src, nil)
+
+	err = Save(output, dst)
 	if err != nil {
 		return err
 	}
-	defer f.Close()
-	e := png.Encoder{CompressionLevel: png.BestCompression}
-	return e.Encode(f, img)
+	return nil
+}
+
+func appendFilename(name, suffix string) string {
+	ext := filepath.Ext(name)
+	return name[0:len(name)-len(ext)] + suffix
 }
 
 func main() {
-	src, err := loadImage("tmp/in001.png")
-	if err != nil {
-		log.Fatal("failed to load image: %s", err)
+	var (
+		input  string
+		output string
+		size   int
+	)
+	flag.IntVar(&size, "size", 224, "size of output: 224, 448, 896")
+	flag.StringVar(&output, "output", "", "output name, default auto-generated")
+	flag.Parse()
+	if flag.NArg() != 1 {
+		log.Fatalf("require one input image file")
 	}
-	dst := image.NewRGBA(image.Rect(0, 0, 224, 224))
-	draw.CatmullRom.Scale(dst, dst.Bounds(), src, src.Bounds(), draw.Src, nil)
-	err = pngSave(dst, "tmp/out001go.png")
-	if err != nil {
-		log.Fatal("failed to save an image: %s", err)
+
+	input = flag.Arg(0)
+	if output == "" {
+		output = appendFilename(input, fmt.Sprintf("_%[1]ds.jpg", size))
+	}
+
+	if err := Preconvert(input, output, size); err != nil {
+		log.Fatal(err)
 	}
 }
