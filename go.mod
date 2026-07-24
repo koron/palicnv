@@ -1,5 +1,5 @@
 module github.com/koron/palicnv
 
-go 1.23.11
+go 1.25.0
 
-require golang.org/x/image v0.23.0
+require golang.org/x/image v0.44.0
